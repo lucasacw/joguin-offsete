@@ -421,6 +421,20 @@
     </div>
   </div>
 
+  <!-- NOTIFICAÇÃO AO VIVO EM TEMPO REAL (Toast quando alguém da equipe avança) -->
+  <div class="live-toast" id="live-toast" aria-hidden="true">
+    <div class="toast-icon-wrap" id="toast-icon">🚀</div>
+    <div class="toast-body">
+      <div class="toast-top-row">
+        <span class="toast-team-badge" id="toast-team">Frente Mídias</span>
+        <span class="toast-live-pill">Ao Vivo 🟢</span>
+      </div>
+      <p class="toast-task-name" id="toast-task">Nome da Meta Concluída</p>
+      <p class="toast-cheer-msg" id="toast-cheer">"Mensagem motivacional de comemoração aqui!"</p>
+    </div>
+    <button class="btn-toast-close" id="btn-toast-close" title="Fechar notificação">✕</button>
+  </div>
+
   <!-- Scripts do App -->
   <!-- Firebase SDKs compatíveis via CDN (carregam condicionalmente quando configurados) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>

@@ -411,6 +411,15 @@ class JoguinApp {
 
     this.victoryModal = document.getElementById('victory-modal');
     this.btnCloseVictory = document.getElementById('btn-close-victory');
+
+    // Toast de Notificação Ao Vivo
+    this.liveToast = document.getElementById('live-toast');
+    this.toastIcon = document.getElementById('toast-icon');
+    this.toastTeam = document.getElementById('toast-team');
+    this.toastTask = document.getElementById('toast-task');
+    this.toastCheer = document.getElementById('toast-cheer');
+    this.btnToastClose = document.getElementById('btn-toast-close');
+    this.toastTimer = null;
   }
 
   /**
@@ -471,6 +480,11 @@ class JoguinApp {
     // Fechar modais de celebração
     this.btnCloseModal.addEventListener('click', () => this.closeCelebrationModal());
     this.btnCloseVictory.addEventListener('click', () => this.closeVictoryModal());
+
+    // Fechar toast ao clicar no botão
+    if (this.btnToastClose) {
+      this.btnToastClose.addEventListener('click', () => this.closeLiveToast());
+    }
 
     // Fechar modal ao clicar fora
     [this.celebrationModal, this.victoryModal].forEach((modal) => {
@@ -533,13 +547,41 @@ class JoguinApp {
 
     // 2. Registra escutador de atualizações remotas / de outras abas
     window.GameSync.onStateChange((newState, source) => {
+      const prevCompleted = { ...(this.state.completedTasks || {}) };
+
       this.state = newState;
       this.ensureStateHealth();
       this.updateUI();
 
-      // Se a mudança veio de fora, tocar um som suave de avanço
+      // Se a mudança veio de fora (outra máquina ou aba), notifica ao vivo!
       if (source !== 'local_action') {
-        this.sound.playPawnStep();
+        const newlyDoneId = Object.keys(this.state.completedTasks).find(
+          id => this.state.completedTasks[id] && !prevCompleted[id]
+        );
+
+        if (newlyDoneId) {
+          let foundTeam = null;
+          let foundTask = null;
+          for (const team of Object.values(GAME_DATA)) {
+            const tk = team.tasks.find(x => x.id === newlyDoneId);
+            if (tk) {
+              foundTeam = team;
+              foundTask = tk;
+              break;
+            }
+          }
+
+          if (foundTeam && foundTask) {
+            // Notificação visual Toast + Confetes + Fanfarra de Conquista
+            this.showLiveToast(foundTeam, foundTask);
+            this.triggerConfetti();
+            this.sound.playTaskComplete();
+          } else {
+            this.sound.playPawnStep();
+          }
+        } else {
+          this.sound.playPawnStep();
+        }
       }
     });
   }
@@ -780,6 +822,31 @@ class JoguinApp {
   }
 
   /**
+   * Exibe toast flutuante em tempo real quando outra pessoa da equipe avança
+   */
+  showLiveToast(team, task) {
+    if (!this.liveToast) return;
+    this.toastIcon.textContent = team.emoji;
+    this.toastTeam.textContent = `Frente ${team.name}`;
+    this.toastTeam.style.color = team.color;
+    this.toastTask.textContent = task.title;
+    this.toastCheer.textContent = `"${task.cheer}"`;
+    this.liveToast.style.borderColor = team.color;
+    this.liveToast.removeAttribute('aria-hidden');
+
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      this.closeLiveToast();
+    }, 6000);
+  }
+
+  closeLiveToast() {
+    if (this.liveToast) {
+      this.liveToast.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  /**
    * Grande Vitória Coletiva (20/20 concluídas)
    */
   triggerVictory() {
@@ -843,6 +910,7 @@ class JoguinApp {
   resetGame() {
     this.closeCelebrationModal();
     this.closeVictoryModal();
+    this.closeLiveToast();
 
     this.state = {
       completedTasks: {},
