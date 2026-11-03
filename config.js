@@ -1,24 +1,17 @@
 /**
- * config.js - Configurações Opcionais do Tabuleiro
+ * config.js - Configurações do Tabuleiro Missão Dezembro 2026
  * 
- * Se você quiser que o seu site no GitHub Pages já suba automaticamente conectado
- * ao Firebase (sem precisar colar pelo botão de engrenagem no navegador), basta
- * preencher o objeto abaixo com as chaves do seu projeto Firebase (plano gratuito Spark).
- * 
- * Se deixar vazio (null), o jogo continua funcionando perfeitamente em modo local
- * e você pode colar as credenciais pelo próprio botão "⚙️ Sincronização" no cabeçalho do site!
+ * Conexão direta com o Firebase Realtime Database para sincronização
+ * instantânea em tempo real entre todos os participantes da equipe.
  */
 
-window.FIREBASE_CONFIG = null;
-
-/* Exemplo de preenchimento:
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyD-EXEMPLO_SUA_API_KEY",
-  authDomain: "seu-projeto-joguin.firebaseapp.com",
-  databaseURL: "https://seu-projeto-joguin-default-rtdb.firebaseio.com",
-  projectId: "seu-projeto-joguin",
-  storageBucket: "seu-projeto-joguin.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
+  apiKey: "AIzaSyAUHE4hU6dRxNjLPna9MUCssaFI1ikiHU8",
+  authDomain: "joguin-offsete.firebaseapp.com",
+  databaseURL: "https://joguin-offsete-default-rtdb.firebaseio.com",
+  projectId: "joguin-offsete",
+  storageBucket: "joguin-offsete.firebasestorage.app",
+  messagingSenderId: "626694875734",
+  appId: "1:626694875734:web:e86d26d1e02d87a5e629f7",
+  measurementId: "G-WJQKX0PDQY"
 };
-*/

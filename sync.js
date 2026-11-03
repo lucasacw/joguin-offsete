@@ -24,10 +24,24 @@ class GameSyncManager {
     this.dbRef = null;
     this.isFirebaseActive = false;
     this.listeners = [];
+    this.statusListeners = [];
     this.lastStateHash = '';
 
     this._initBroadcastChannel();
     this._initFirebaseIfAvailable();
+  }
+
+  onStatusChange(callback) {
+    if (typeof callback === 'function') {
+      this.statusListeners.push(callback);
+    }
+  }
+
+  _notifyStatusChange() {
+    const status = this.getStatus();
+    this.statusListeners.forEach((fn) => {
+      try { fn(status); } catch (e) { console.error(e); }
+    });
   }
 
   /**
@@ -48,24 +62,36 @@ class GameSyncManager {
    * Tenta carregar credenciais do Firebase salvas no localStorage ou window
    */
   _initFirebaseIfAvailable() {
-    let savedConfig = null;
+    const attempt = () => {
+      let savedConfig = null;
 
-    if (window.FIREBASE_CONFIG) {
-      savedConfig = window.FIREBASE_CONFIG;
-    } else {
-      const raw = localStorage.getItem(FIREBASE_CONFIG_KEY);
-      if (raw) {
-        try {
-          savedConfig = JSON.parse(raw);
-        } catch (e) {
-          console.warn('Erro ao decodificar configuração do Firebase:', e);
+      if (window.FIREBASE_CONFIG) {
+        savedConfig = window.FIREBASE_CONFIG;
+      } else {
+        const raw = localStorage.getItem(FIREBASE_CONFIG_KEY);
+        if (raw) {
+          try {
+            savedConfig = JSON.parse(raw);
+          } catch (e) {
+            console.warn('Erro ao decodificar configuração do Firebase:', e);
+          }
         }
       }
-    }
 
-    if (savedConfig && savedConfig.apiKey && savedConfig.databaseURL) {
-      this.connectFirebase(savedConfig);
-    }
+      if (savedConfig && savedConfig.apiKey && savedConfig.databaseURL) {
+        if (typeof firebase !== 'undefined') {
+          this.connectFirebase(savedConfig);
+        } else {
+          window.addEventListener('load', () => {
+            if (typeof firebase !== 'undefined' && !this.isFirebaseActive) {
+              this.connectFirebase(savedConfig);
+            }
+          }, { once: true });
+        }
+      }
+    };
+
+    attempt();
   }
 
   /**
@@ -100,10 +126,12 @@ class GameSyncManager {
 
       this.isFirebaseActive = true;
       localStorage.setItem(FIREBASE_CONFIG_KEY, JSON.stringify(config));
+      this._notifyStatusChange();
       return true;
     } catch (err) {
       console.error('Falha ao conectar ao Firebase:', err);
       this.isFirebaseActive = false;
+      this._notifyStatusChange();
       return false;
     }
   }
@@ -117,6 +145,7 @@ class GameSyncManager {
     }
     this.isFirebaseActive = false;
     localStorage.removeItem(FIREBASE_CONFIG_KEY);
+    this._notifyStatusChange();
   }
 
   /**

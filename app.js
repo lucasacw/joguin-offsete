@@ -500,6 +500,11 @@ class JoguinApp {
     this.updateUI();
     this.updateSyncBadge();
 
+    // Atualiza badge caso status mude dinamicamente
+    window.GameSync.onStatusChange(() => {
+      this.updateSyncBadge();
+    });
+
     // 2. Registra escutador de atualizações remotas / de outras abas
     window.GameSync.onStateChange((newState, source) => {
       this.state = newState;
