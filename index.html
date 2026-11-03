@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Missão Dezembro 2026 🎲 O Grande Tabuleiro da Equipe</title>
+  
+  <!-- Fontes & Ícones -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <!-- Cabeçalho Principal -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <span class="dice-icon">🎲</span>
+        <div>
+          <h1 class="app-title">Missão Dezembro 2026</h1>
+          <p class="app-subtitle">O Tabuleiro Gamificado da Equipe</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Progresso Global Coletiva -->
+    <div class="global-progress-card">
+      <div class="progress-info">
+        <span class="progress-label">Meta Coletiva (20 Metas):</span>
+        <span id="global-progress-text" class="progress-val">0 / 20 (0%)</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="global-progress-bar" class="progress-bar-fill" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Status de Sincronização em Tempo Real -->
+      <button id="btn-sync-status" class="sync-status-pill" title="Clique para configurar o servidor em tempo real">
+        <span id="sync-dot" class="sync-dot local"></span>
+        <span id="sync-label">Sincronização: Local (Abas)</span>
+        <span class="settings-gear">⚙️</span>
+      </button>
+      
+      <!-- Botão de Som -->
+      <button id="btn-sound-toggle" class="icon-btn" title="Ligar/Desligar Efeitos Sonoros">
+        🔊
+      </button>
+
+      <!-- Botão da Roleta de Motivação / Dado -->
+      <button id="btn-roll-dice" class="dice-roll-btn" title="Role o dado da motivação!">
+        🎲 Rolar Dado
+      </button>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="main-layout">
+    <!-- Painel Lateral Esquerdo: Times e Metas (Checklist Interativo) -->
+    <aside class="sidebar-teams">
+      <div class="sidebar-header">
+        <h2>Frentes & Tarefas</h2>
+        <span class="badge-sub">Clique na tarefa para avançar!</span>
+      </div>
+
+      <div class="teams-accordion">
+        <!-- Verde - Projetos -->
+        <div class="team-card team-green" data-team="green">
+          <div class="team-card-header">
+            <div class="team-ident">
+              <span class="team-pawn-preview pawn-green">♟️</span>
+              <div class="team-meta-info">
+                <h3>Projetos</h3>
+                <span class="team-progress-count" id="count-green">0/5 concluídas</span>
+              </div>
+            </div>
+            <span class="team-arrow">▼</span>
+          </div>
+          <div class="team-tasks-list" id="tasks-green">
+            <!-- Injetado dinamicamente via JS -->
+          </div>
+        </div>
+
+        <!-- Vermelho - Mídias -->
+        <div class="team-card team-red" data-team="red">
+          <div class="team-card-header">
+            <div class="team-ident">
+              <span class="team-pawn-preview pawn-red">♟️</span>
+              <div class="team-meta-info">
+                <h3>Mídias</h3>
+                <span class="team-progress-count" id="count-red">0/5 concluídas</span>
+              </div>
+            </div>
+            <span class="team-arrow">▼</span>
+          </div>
+          <div class="team-tasks-list" id="tasks-red">
+            <!-- Injetado dinamicamente via JS -->
+          </div>
+        </div>
+
+        <!-- Azul - Zelo -->
+        <div class="team-card team-blue" data-team="blue">
+          <div class="team-card-header">
+            <div class="team-ident">
+              <span class="team-pawn-preview pawn-blue">♟️</span>
+              <div class="team-meta-info">
+                <h3>Zelo</h3>
+                <span class="team-progress-count" id="count-blue">0/5 concluídas</span>
+              </div>
+            </div>
+            <span class="team-arrow">▼</span>
+          </div>
+          <div class="team-tasks-list" id="tasks-blue">
+            <!-- Injetado dinamicamente via JS -->
+          </div>
+        </div>
+
+        <!-- Amarelo - Loja -->
+        <div class="team-card team-yellow" data-team="yellow">
+          <div class="team-card-header">
+            <div class="team-ident">
+              <span class="team-pawn-preview pawn-yellow">♟️</span>
+              <div class="team-meta-info">
+                <h3>Loja</h3>
+                <span class="team-progress-count" id="count-yellow">0/5 concluídas</span>
+              </div>
+            </div>
+            <span class="team-arrow">▼</span>
+          </div>
+          <div class="team-tasks-list" id="tasks-yellow">
+            <!-- Injetado dinamicamente via JS -->
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Área Central: O Tabuleiro Interativo Ludo -->
+    <section class="board-container">
+      <div class="board-frame">
+        <div class="board-ludo" id="ludo-board">
+          
+          <!-- 1. BASE VERDE (Projetos - Canto Superior Esquerdo) -->
+          <div class="quadrant base-green">
+            <div class="base-circle">
+              <div class="base-inner">
+                <span class="base-icon">🌿</span>
+                <h4>Projetos</h4>
+                <div class="base-slot" id="base-slot-green">
+                  <div class="pawn pawn-green" id="pawn-green" title="Pino Projetos">
+                    <span class="pawn-head"></span>
+                    <span class="pawn-body"></span>
+                    <span class="pawn-tag">P</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. PISTA SUPERIOR (Trilha Projetos rumo ao centro) -->
+          <div class="track-wing track-top">
+            <div class="track-row">
+              <div class="tile step-green" data-team="green" data-step="1" id="tile-green-1">
+                <span class="tile-number">1</span>
+                <span class="tile-tooltip">1. Prospecção Tomotoy</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-green" data-team="green" data-step="2" id="tile-green-2">
+                <span class="tile-number">2</span>
+                <span class="tile-tooltip">2. Prospecção Ilustrações</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-green" data-team="green" data-step="3" id="tile-green-3">
+                <span class="tile-number">3</span>
+                <span class="tile-tooltip">3. Branding Megara</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-green" data-team="green" data-step="4" id="tile-green-4">
+                <span class="tile-number">4</span>
+                <span class="tile-tooltip">4. Finalizar Ruella</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-green final-step" data-team="green" data-step="5" id="tile-green-5">
+                <span class="tile-number">5</span>
+                <span class="tile-tooltip">5. Portfolio Leticia</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. BASE VERMELHA (Mídias - Canto Superior Direito) -->
+          <div class="quadrant base-red">
+            <div class="base-circle">
+              <div class="base-inner">
+                <span class="base-icon">🔥</span>
+                <h4>Mídias</h4>
+                <div class="base-slot" id="base-slot-red">
+                  <div class="pawn pawn-red" id="pawn-red" title="Pino Mídias">
+                    <span class="pawn-head"></span>
+                    <span class="pawn-body"></span>
+                    <span class="pawn-tag">M</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. PISTA ESQUERDA (Trilha Amarelo / Loja rumo ao centro) -->
+          <div class="track-wing track-left">
+            <div class="track-column">
+              <div class="tile step-yellow" data-team="yellow" data-step="1" id="tile-yellow-1">
+                <span class="tile-number">1</span>
+                <span class="tile-tooltip">1. Plano de Produtos</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-yellow" data-team="yellow" data-step="2" id="tile-yellow-2">
+                <span class="tile-number">2</span>
+                <span class="tile-tooltip">2. Data Planej. Campanha</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-yellow" data-team="yellow" data-step="3" id="tile-yellow-3">
+                <span class="tile-number">3</span>
+                <span class="tile-tooltip">3. Data Início Venda</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-yellow" data-team="yellow" data-step="4" id="tile-yellow-4">
+                <span class="tile-number">4</span>
+                <span class="tile-tooltip">4. Fluxo Logístico</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-yellow final-step" data-team="yellow" data-step="5" id="tile-yellow-5">
+                <span class="tile-number">5</span>
+                <span class="tile-tooltip">5. Fluxo Atendimento</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. CENTRO DO TABULEIRO: O PÓDIO DEZEMBRO 2026 -->
+          <div class="center-finish" id="center-goal">
+            <div class="center-aura"></div>
+            <div class="center-content">
+              <span class="trophy-emoji">🏆</span>
+              <h3>META FINAL</h3>
+              <p class="final-date">DEZEMBRO 2026</p>
+              <div class="center-podium-slots">
+                <div class="podium-slot slot-green" id="podium-green" title="Chegada Projetos"></div>
+                <div class="podium-slot slot-red" id="podium-red" title="Chegada Mídias"></div>
+                <div class="podium-slot slot-yellow" id="podium-yellow" title="Chegada Loja"></div>
+                <div class="podium-slot slot-blue" id="podium-blue" title="Chegada Zelo"></div>
+              </div>
+              <span class="arrival-label">Chegada Coletiva</span>
+            </div>
+          </div>
+
+          <!-- 6. PISTA DIREITA (Trilha Vermelha / Mídias rumo ao centro) -->
+          <div class="track-wing track-right">
+            <div class="track-column">
+              <div class="tile step-red" data-team="red" data-step="1" id="tile-red-1">
+                <span class="tile-number">1</span>
+                <span class="tile-tooltip">1. 500 Seguidores</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-red" data-team="red" data-step="2" id="tile-red-2">
+                <span class="tile-number">2</span>
+                <span class="tile-tooltip">2. 33 Posts</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-red" data-team="red" data-step="3" id="tile-red-3">
+                <span class="tile-number">3</span>
+                <span class="tile-tooltip">3. 198 Stories</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-red" data-team="red" data-step="4" id="tile-red-4">
+                <span class="tile-number">4</span>
+                <span class="tile-tooltip">4. Engajamento 30%</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-red final-step" data-team="red" data-step="5" id="tile-red-5">
+                <span class="tile-number">5</span>
+                <span class="tile-tooltip">5. Estimular Equipe</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. BASE AMARELA (Loja - Canto Inferior Esquerdo) -->
+          <div class="quadrant base-yellow">
+            <div class="base-circle">
+              <div class="base-inner">
+                <span class="base-icon">🛍️</span>
+                <h4>Loja</h4>
+                <div class="base-slot" id="base-slot-yellow">
+                  <div class="pawn pawn-yellow" id="pawn-yellow" title="Pino Loja">
+                    <span class="pawn-head"></span>
+                    <span class="pawn-body"></span>
+                    <span class="pawn-tag">L</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. PISTA INFERIOR (Trilha Azul / Zelo rumo ao centro) -->
+          <div class="track-wing track-bottom">
+            <div class="track-row">
+              <div class="tile step-blue" data-team="blue" data-step="1" id="tile-blue-1">
+                <span class="tile-number">1</span>
+                <span class="tile-tooltip">1. Arrecadar Pagamentos</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-blue" data-team="blue" data-step="2" id="tile-blue-2">
+                <span class="tile-number">2</span>
+                <span class="tile-tooltip">2. Apresentação Padrão</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-blue" data-team="blue" data-step="3" id="tile-blue-3">
+                <span class="tile-number">3</span>
+                <span class="tile-tooltip">3. Alertas de Reuniões</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-blue" data-team="blue" data-step="4" id="tile-blue-4">
+                <span class="tile-number">4</span>
+                <span class="tile-tooltip">4. Atas das Reuniões</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+              <div class="tile step-blue final-step" data-team="blue" data-step="5" id="tile-blue-5">
+                <span class="tile-number">5</span>
+                <span class="tile-tooltip">5. Reunião Encerramento</span>
+                <div class="tile-pawn-slot"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 9. BASE AZUL (Zelo - Canto Inferior Direito) -->
+          <div class="quadrant base-blue">
+            <div class="base-circle">
+              <div class="base-inner">
+                <span class="base-icon">💎</span>
+                <h4>Zelo</h4>
+                <div class="base-slot" id="base-slot-blue">
+                  <div class="pawn pawn-blue" id="pawn-blue" title="Pino Zelo">
+                    <span class="pawn-head"></span>
+                    <span class="pawn-body"></span>
+                    <span class="pawn-tag">Z</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Painel Lateral Direito: Feed de Celebrações & Feed em Tempo Real -->
+    <aside class="sidebar-feed">
+      <div class="feed-header">
+        <h3>🎉 Feed de Conquistas</h3>
+        <span class="feed-badge">Ao Vivo</span>
+      </div>
+
+      <!-- Caixa de Última Mensagem de Incentivo -->
+      <div class="latest-cheer-card" id="latest-cheer-card">
+        <div class="cheer-badge">Mensagem do Tabuleiro 📢</div>
+        <p class="cheer-text" id="cheer-text">
+          "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro em Dezembro de 2026. Quem vai dar o primeiro passo?!"
+        </p>
+        <span class="cheer-author" id="cheer-author">— O Juiz do Jogo 🎲</span>
+      </div>
+
+      <!-- Histórico de Atividades / Log do Jogo -->
+      <div class="feed-history-container">
+        <h4>Histórico de Avanços</h4>
+        <ul class="feed-list" id="feed-list">
+          <!-- Injetado via JS -->
+        </ul>
+      </div>
+
+      <!-- Botão de Reset (com confirmação) para testes ou novo ciclo -->
+      <div class="sidebar-footer">
+        <button id="btn-reset-game" class="btn-text-danger" title="Reiniciar todas as tarefas">
+          🔄 Reiniciar Tabuleiro
+        </button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- MODAL: Notificação de Celebração de Tarefa Concluída -->
+  <div class="celebration-overlay" id="celebration-modal" aria-hidden="true">
+    <div class="celebration-box">
+      <div class="celebration-emoji" id="modal-emoji">🚀</div>
+      <h2 id="modal-title">Golaço do Time!</h2>
+      <p class="modal-task" id="modal-task">Nome da Tarefa</p>
+      <div class="modal-cheer-bubble" id="modal-cheer">
+        "Mensagem engraçada e motivacional aqui!"
+      </div>
+      <button class="btn-modal-close" id="btn-close-modal">Continuar Jogando! 🎯</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Grande Vitória Coletiva (Quando todas as 20 metas forem batidas) -->
+  <div class="celebration-overlay" id="victory-modal" aria-hidden="true">
+    <div class="celebration-box victory-box">
+      <div class="victory-fireworks">🎆 🏆 🎇</div>
+      <h2>MISSÃO DEZEMBRO 2026 CUMPRIDA!</h2>
+      <p class="victory-subtitle">TODAS AS FRENTES CHEGARAM AO DESTINO FINAL!</p>
+      <div class="victory-teams-badges">
+        <span class="v-badge v-green">🌿 Projetos: 100%</span>
+        <span class="v-badge v-red">🔥 Mídias: 100%</span>
+        <span class="v-badge v-yellow">🛍️ Loja: 100%</span>
+        <span class="v-badge v-blue">💎 Zelo: 100%</span>
+      </div>
+      <p class="victory-text">
+        Vocês conseguiram! A equipe inteira remou junto, superou os desafios e levou cada um dos pinos até a vitória. Dezembro de 2026 é nosso! Parabéns a todo o time! 🚀🎉
+      </p>
+      <button class="btn-modal-close btn-gold" id="btn-close-victory">Bater Palma para a Equipe! 👏</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Configuração de Sincronização em Tempo Real (Firebase / Multi-usuário) -->
+  <div class="celebration-overlay" id="sync-modal" aria-hidden="true">
+    <div class="celebration-box sync-config-box">
+      <div class="sync-modal-header">
+        <h3>🌐 Conectividade em Tempo Real</h3>
+        <button class="btn-close-x" id="btn-close-sync">✕</button>
+      </div>
+      <p class="sync-desc">
+        Como o <strong>GitHub Pages</strong> é gratuito e estático, nós conectamos o jogo a um banco de dados em tempo real gratuito (como o <strong>Firebase Realtime Database</strong>). Assim, quando alguém marcar uma tarefa no computador dele, a tela de todo mundo mexe na mesma hora!
+      </p>
+      
+      <div class="sync-status-indicator" id="sync-modal-status">
+        <span class="status-icon">🟡</span>
+        <span>Modo atual: <strong>Sincronização Local (Multi-Abas via BroadcastChannel)</strong></span>
+      </div>
+
+      <div class="sync-options-tabs">
+        <label class="form-label">Cole suas credenciais do Firebase (grátis):</label>
+        <textarea id="firebase-config-input" rows="6" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "seu-app.firebaseapp.com",
+  "databaseURL": "https://seu-app-default-rtdb.firebaseio.com",
+  "projectId": "seu-app"
+}'></textarea>
+        <small class="helper-text">
+          💡 <strong>Dica rápida:</strong> O jogo já funciona 100% agora entre abas do mesmo navegador sem precisar preencher nada! Se quiser sincronizar com seu time pela internet no GitHub Pages, basta criar um projeto grátis no <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer">Firebase Console</a>, habilitar o Realtime Database e colar o JSON acima.
+        </small>
+      </div>
+
+      <div class="sync-modal-actions">
+        <button id="btn-save-firebase" class="btn-primary">Salvar e Conectar ao Vivo</button>
+        <button id="btn-clear-firebase" class="btn-secondary">Usar Modo Local</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts do App -->
+  <!-- Firebase SDKs compatíveis via CDN (carregam condicionalmente quando configurados) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <script src="config.js"></script>
+  <script src="sync.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
