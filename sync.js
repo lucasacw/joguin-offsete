@@ -50,7 +50,7 @@ class GameSyncManager {
    */
   _sanitizeState(raw) {
     const defaultCheer = {
-      text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro em Dezembro de 2026. Quem vai dar o primeiro passo?!",
+      text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro na Missão Offsete 2026. Quem vai dar o primeiro passo?!",
       author: "O Juiz do Jogo 🎲"
     };
 

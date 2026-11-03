@@ -1,4 +1,4 @@
-# 🎲 Missão Dezembro 2026 — O Tabuleiro Gamificado da Equipe
+# 🎲 Missão Offsete 2026 — O Tabuleiro Gamificado da Equipe
 
 Um jogo de tabuleiro interativo no estilo **Ludo** projetado para engajar, motivar e acompanhar em tempo real as metas das 4 frentes do time rumo à grande conquista de **Dezembro de 2026**! 🏁✨
 

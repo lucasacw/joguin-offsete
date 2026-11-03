@@ -57,7 +57,7 @@ const GAME_DATA = {
   red: {
     id: 'red',
     name: 'Mídias',
-    color: '#f43f5e',
+    color: '#df633c',
     emoji: '🔥',
     tasks: [
       {
@@ -96,7 +96,7 @@ const GAME_DATA = {
   blue: {
     id: 'blue',
     name: 'Zelo',
-    color: '#38bdf8',
+    color: '#4783aa',
     emoji: '💎',
     tasks: [
       {
@@ -135,7 +135,7 @@ const GAME_DATA = {
   yellow: {
     id: 'yellow',
     name: 'Loja',
-    color: '#fbbf24',
+    color: '#f3c159',
     emoji: '🛍️',
     tasks: [
       {
@@ -353,7 +353,7 @@ class JoguinApp {
       completedTasks: {},
       history: [],
       lastCheer: {
-        text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro em Dezembro de 2026. Quem vai dar o primeiro passo?!",
+        text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro na Missão Offsete 2026. Quem vai dar o primeiro passo?!",
         author: "O Juiz do Jogo 🎲"
       }
     };
@@ -379,7 +379,7 @@ class JoguinApp {
     }
     if (!this.state.lastCheer || typeof this.state.lastCheer !== 'object') {
       this.state.lastCheer = {
-        text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro em Dezembro de 2026. Quem vai dar o primeiro passo?!",
+        text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro na Missão Offsete 2026. Quem vai dar o primeiro passo?!",
         author: "O Juiz do Jogo 🎲"
       };
     }
@@ -801,7 +801,7 @@ class JoguinApp {
         particleCount: 80,
         spread: 60,
         origin: { y: 0.65 },
-        colors: ['#10b981', '#f43f5e', '#38bdf8', '#fbbf24']
+        colors: ['#10b981', '#df633c', '#4783aa', '#f3c159']
       });
     }
   }
@@ -821,14 +821,14 @@ class JoguinApp {
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e']
+        colors: ['#10b981', '#df633c', '#4783aa', '#f3c159']
       });
       confetti({
         particleCount: 5,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e']
+        colors: ['#10b981', '#df633c', '#4783aa', '#f3c159']
       });
 
       if (Date.now() < end) {
@@ -848,7 +848,7 @@ class JoguinApp {
       completedTasks: {},
       history: [],
       lastCheer: {
-        text: "Tabuleiro reiniciado! Novo ciclo em direção a Dezembro de 2026! Quem dá o pontapé inicial?!",
+        text: "Tabuleiro reiniciado! Novo ciclo em direção à Missão Offsete 2026! Quem dá o pontapé inicial?!",
         author: "O Juiz do Jogo 🎲"
       }
     };
