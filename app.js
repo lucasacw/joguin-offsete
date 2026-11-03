@@ -5,7 +5,7 @@
  * - Estrutura de dados das frentes e tarefas
  * - Movimentação visual dos pinos no tabuleiro Ludo
  * - Banco de mensagens engraçadas e motivacionais
- * - Efeitos sonoros via Web Audio API (sem dependência de arquivos externos)
+ * - Efeitos sonoros via Web Audio API (com proteção try/catch)
  * - Efeitos visuais de confete (canvas-confetti)
  * - Integração bidirecional com a camada sync.js (tempo real)
  */
@@ -176,9 +176,9 @@ const GAME_DATA = {
 const DICE_QUOTES = [
   "🎲 'Quem não arrisca uma tarefa concluída não chega no réveillon de 2026 de cabeça erguida!'",
   "🎲 'A meta de Dezembro tá cada vez mais perto. Respira fundo, toma uma água e bora pra cima!'",
-  "🎲 'O dado rolou 6: Isso significa que a próxima tarefa que você fizer vale em dobro no orgulho da equipe!'",
+  "🎲 'O dado rolou 6: Isso significa que a próxima tarefa concluída vale em dobro no orgulho da equipe!'",
   "🎲 'Café tomado, foco ativado! Cada pino que anda é um motivo a mais pra gente comemorar!'",
-  "🎲 'O time tá entrosado demais. Dezembro de 2026 não é um sonho, é compromisso agendado!'",
+  "🎲 'O time tá entrosado demais. Dezembro de 2026 não é um sonho distante, é compromisso agendado!'",
   "🎲 'Dica do mestre do jogo: Ajude o pino do seu vizinho se você já adiantou as suas tarefas!'"
 ];
 
@@ -193,14 +193,18 @@ class SoundFX {
   }
 
   _ensureContext() {
-    if (!this.ctx) {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
+    try {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          this.ctx = new AudioCtx();
+        }
       }
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    } catch (e) {
+      console.warn('AudioContext não disponível:', e);
     }
   }
 
@@ -211,114 +215,127 @@ class SoundFX {
 
   playPawnStep() {
     if (!this.enabled) return;
-    this._ensureContext();
-    if (!this.ctx) return;
+    try {
+      this._ensureContext();
+      if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const now = this.ctx.currentTime;
 
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(260, now);
-    osc.frequency.exponentialRampToValueAtTime(520, now + 0.15);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.15);
 
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
 
-    osc.start(now);
-    osc.stop(now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    } catch (e) {
+      // Ignora silenciosamente se o navegador restringir áudio
+    }
   }
 
   playTaskComplete() {
     if (!this.enabled) return;
-    this._ensureContext();
-    if (!this.ctx) return;
+    try {
+      this._ensureContext();
+      if (!this.ctx) return;
 
-    // Arpeggio alegre (Dó Maior: C5, E5, G5, C6)
-    const notes = [523.25, 659.25, 783.99, 1046.50];
-    const now = this.ctx.currentTime;
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      const now = this.ctx.currentTime;
 
-    notes.forEach((freq, idx) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      const start = now + (idx * 0.08);
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const start = now + (idx * 0.08);
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, start);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
 
-      gain.gain.setValueAtTime(0.3, start);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.25);
+        gain.gain.setValueAtTime(0.3, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.25);
 
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
 
-      osc.start(start);
-      osc.stop(start + 0.26);
-    });
+        osc.start(start);
+        osc.stop(start + 0.26);
+      });
+    } catch (e) {
+      // Ignora silenciosamente
+    }
   }
 
   playVictory() {
     if (!this.enabled) return;
-    this._ensureContext();
-    if (!this.ctx) return;
+    try {
+      this._ensureContext();
+      if (!this.ctx) return;
 
-    // Fanfarra triunfante
-    const fanfare = [
-      { f: 523.25, d: 0.15 },
-      { f: 523.25, d: 0.15 },
-      { f: 523.25, d: 0.15 },
-      { f: 659.25, d: 0.4 },
-      { f: 783.99, d: 0.2 },
-      { f: 1046.50, d: 0.8 }
-    ];
+      const fanfare = [
+        { f: 523.25, d: 0.15 },
+        { f: 523.25, d: 0.15 },
+        { f: 523.25, d: 0.15 },
+        { f: 659.25, d: 0.4 },
+        { f: 783.99, d: 0.2 },
+        { f: 1046.50, d: 0.8 }
+      ];
 
-    let t = this.ctx.currentTime;
-    fanfare.forEach((n) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      let t = this.ctx.currentTime;
+      fanfare.forEach((n) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(n.f, t);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(n.f, t);
 
-      gain.gain.setValueAtTime(0.35, t);
-      gain.gain.exponentialRampToValueAtTime(0.01, t + n.d);
+        gain.gain.setValueAtTime(0.35, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + n.d);
 
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
 
-      osc.start(t);
-      osc.stop(t + n.d);
+        osc.start(t);
+        osc.stop(t + n.d);
 
-      t += n.d * 0.9;
-    });
+        t += n.d * 0.9;
+      });
+    } catch (e) {
+      // Ignora silenciosamente
+    }
   }
 
   playDice() {
     if (!this.enabled) return;
-    this._ensureContext();
-    if (!this.ctx) return;
+    try {
+      this._ensureContext();
+      if (!this.ctx) return;
 
-    const now = this.ctx.currentTime;
-    // Rattle clicks
-    for (let i = 0; i < 5; i++) {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      const time = now + (i * 0.05);
+      const now = this.ctx.currentTime;
+      for (let i = 0; i < 5; i++) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const time = now + (i * 0.05);
 
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(300 + (Math.random() * 200), time);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(300 + (Math.random() * 200), time);
 
-      gain.gain.setValueAtTime(0.15, time);
-      gain.gain.exponentialRampToValueAtTime(0.01, time + 0.04);
+        gain.gain.setValueAtTime(0.15, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.04);
 
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
 
-      osc.start(time);
-      osc.stop(time + 0.05);
+        osc.start(time);
+        osc.stop(time + 0.05);
+      }
+    } catch (e) {
+      // Ignora silenciosamente
     }
   }
 }
@@ -333,8 +350,8 @@ class JoguinApp {
     
     // Estado inicial padrão
     this.state = {
-      completedTasks: {}, // { 'green_1': true, ... }
-      history: [],        // [{ team, taskTitle, time, cheer }]
+      completedTasks: {},
+      history: [],
       lastCheer: {
         text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro em Dezembro de 2026. Quem vai dar o primeiro passo?!",
         author: "O Juiz do Jogo 🎲"
@@ -345,6 +362,27 @@ class JoguinApp {
     this.renderTaskChecklists();
     this.bindEvents();
     this.initSync();
+  }
+
+  /**
+   * Garante a integridade dos dados da aplicação mesmo que venham corrompidos ou parciais
+   */
+  ensureStateHealth() {
+    if (!this.state || typeof this.state !== 'object') {
+      this.state = {};
+    }
+    if (!this.state.completedTasks || typeof this.state.completedTasks !== 'object') {
+      this.state.completedTasks = {};
+    }
+    if (!Array.isArray(this.state.history)) {
+      this.state.history = [];
+    }
+    if (!this.state.lastCheer || typeof this.state.lastCheer !== 'object') {
+      this.state.lastCheer = {
+        text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro em Dezembro de 2026. Quem vai dar o primeiro passo?!",
+        author: "O Juiz do Jogo 🎲"
+      };
+    }
   }
 
   cacheDOMElements() {
@@ -386,6 +424,8 @@ class JoguinApp {
    * Renderiza os itens de checklist na barra lateral
    */
   renderTaskChecklists() {
+    this.ensureStateHealth();
+
     Object.values(GAME_DATA).forEach((team) => {
       const container = document.getElementById(`tasks-${team.id}`);
       if (!container) return;
@@ -409,10 +449,9 @@ class JoguinApp {
 
         // Clique no item inteiro alterna a tarefa
         item.addEventListener('click', (e) => {
-          // Previne duplo disparo caso clique direto na caixinha
           if (e.target.tagName !== 'INPUT') {
             const cb = item.querySelector('input[type="checkbox"]');
-            cb.checked = !cb.checked;
+            if (cb) cb.checked = !cb.checked;
           }
           this.toggleTask(team.id, task.id);
         });
@@ -491,11 +530,11 @@ class JoguinApp {
    * Inicializa a sincronização via sync.js
    */
   initSync() {
-    // 1. Carrega dados salvos ou padrão
     const initial = window.GameSync.getInitialState();
     if (initial) {
       this.state = initial;
     }
+    this.ensureStateHealth();
 
     this.updateUI();
     this.updateSyncBadge();
@@ -508,6 +547,7 @@ class JoguinApp {
     // 2. Registra escutador de atualizações remotas / de outras abas
     window.GameSync.onStateChange((newState, source) => {
       this.state = newState;
+      this.ensureStateHealth();
       this.updateUI();
 
       // Se a mudança veio de fora, tocar um som suave de avanço
@@ -521,6 +561,8 @@ class JoguinApp {
    * Alterna a conclusão de uma tarefa
    */
   toggleTask(teamId, taskId) {
+    this.ensureStateHealth();
+
     const isNowDone = !this.state.completedTasks[taskId];
     this.state.completedTasks[taskId] = isNowDone;
 
@@ -528,7 +570,6 @@ class JoguinApp {
     const task = team.tasks.find(t => t.id === taskId);
 
     if (isNowDone) {
-      // Registrar no histórico e cheer
       const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       
       this.state.lastCheer = {
@@ -561,9 +602,10 @@ class JoguinApp {
   }
 
   /**
-   * Rola o dado interativo
+   * Rola o dado interativo e propaga o cheer para todo o time
    */
   rollDice() {
+    this.ensureStateHealth();
     this.sound.playDice();
 
     const teams = Object.values(GAME_DATA);
@@ -583,12 +625,17 @@ class JoguinApp {
     setTimeout(() => {
       this.btnRollDice.style.transform = '';
     }, 250);
+
+    // Propaga a rolagem de dados em tempo real para a tela dos colegas
+    window.GameSync.publishState(this.state);
   }
 
   /**
    * Atualiza toda a interface (tabuleiro, contadores, pinos, histórico)
    */
   updateUI() {
+    this.ensureStateHealth();
+
     let totalDone = 0;
     const totalMetas = 20;
 
@@ -657,21 +704,17 @@ class JoguinApp {
     let targetSlot = null;
 
     if (count === 0) {
-      // Está na base inicial do time
       targetSlot = document.getElementById(`base-slot-${teamId}`);
     } else if (count >= 1 && count <= 4) {
-      // Está em uma das casas intermediárias (1 a 4)
       const tile = document.getElementById(`tile-${teamId}-${count}`);
       if (tile) {
         targetSlot = tile.querySelector('.tile-pawn-slot');
       }
     } else if (count >= 5) {
-      // Chegou no pódio final no centro do tabuleiro (Dezembro 2026)!
       targetSlot = document.getElementById(`podium-${teamId}`);
     }
 
     if (targetSlot && pawn.parentElement !== targetSlot) {
-      // Adiciona animação de salto ao pino
       pawn.classList.add('hopping');
       targetSlot.appendChild(pawn);
       setTimeout(() => pawn.classList.remove('hopping'), 600);
@@ -783,6 +826,9 @@ class JoguinApp {
    * Reiniciar jogo
    */
   resetGame() {
+    this.closeCelebrationModal();
+    this.closeVictoryModal();
+
     this.state = {
       completedTasks: {},
       history: [],

@@ -40,8 +40,61 @@ class GameSyncManager {
   _notifyStatusChange() {
     const status = this.getStatus();
     this.statusListeners.forEach((fn) => {
-      try { fn(status); } catch (e) { console.error(e); }
+      try { fn(status); } catch (e) { console.error('Erro em ouvinte de status:', e); }
     });
+  }
+
+  /**
+   * Sanitiza e normaliza o estado recebido (do Firebase, LocalStorage ou Broadcast)
+   * Isso previne erros onde o Firebase Realtime Database remove nós vazios como {} ou []
+   */
+  _sanitizeState(raw) {
+    const defaultCheer = {
+      text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro em Dezembro de 2026. Quem vai dar o primeiro passo?!",
+      author: "O Juiz do Jogo 🎲"
+    };
+
+    if (!raw || typeof raw !== 'object') {
+      return {
+        completedTasks: {},
+        history: [],
+        lastCheer: defaultCheer,
+        updatedAt: Date.now()
+      };
+    }
+
+    // Normaliza completedTasks
+    let completedTasks = {};
+    if (raw.completedTasks && typeof raw.completedTasks === 'object') {
+      completedTasks = { ...raw.completedTasks };
+      delete completedTasks._empty;
+      delete completedTasks._init;
+    }
+
+    // Normaliza history
+    let history = [];
+    if (Array.isArray(raw.history)) {
+      history = [...raw.history];
+    } else if (raw.history && typeof raw.history === 'object') {
+      // Firebase às vezes converte arrays em objetos com índices numéricos
+      history = Object.values(raw.history);
+    }
+
+    // Normaliza lastCheer
+    let lastCheer = defaultCheer;
+    if (raw.lastCheer && typeof raw.lastCheer === 'object' && raw.lastCheer.text) {
+      lastCheer = {
+        text: raw.lastCheer.text,
+        author: raw.lastCheer.author || 'O Juiz do Jogo 🎲'
+      };
+    }
+
+    return {
+      completedTasks,
+      history,
+      lastCheer,
+      updatedAt: raw.updatedAt || Date.now()
+    };
   }
 
   /**
@@ -117,9 +170,9 @@ class GameSyncManager {
       // Escuta mudanças em tempo real na nuvem
       this.dbRef.on('value', (snapshot) => {
         const cloudState = snapshot.val();
-        if (cloudState) {
-          this._notifyListeners(cloudState, 'firebase');
-        }
+        // Sanitiza para garantir que se for null ou faltar campos, retorne objeto seguro
+        const cleanState = this._sanitizeState(cloudState);
+        this._notifyListeners(cleanState, 'firebase');
       }, (error) => {
         console.error('Erro de permissão ou conexão no Firebase:', error);
       });
@@ -158,10 +211,12 @@ class GameSyncManager {
   }
 
   /**
-   * Notifica todos os ouvintes internos da tela
+   * Notifica todos os ouvintes internos da tela com estado limpo e seguro
    */
-  _notifyListeners(state, source) {
+  _notifyListeners(rawState, source) {
+    const state = this._sanitizeState(rawState);
     const serialized = JSON.stringify(state);
+
     if (serialized === this.lastStateHash) return; // Evita loop infinito
     this.lastStateHash = serialized;
 
@@ -181,7 +236,8 @@ class GameSyncManager {
    * Publica uma alteração feita pelo usuário nesta tela para todas as outras
    */
   publishState(newState) {
-    const serialized = JSON.stringify(newState);
+    const cleanState = this._sanitizeState(newState);
+    const serialized = JSON.stringify(cleanState);
     this.lastStateHash = serialized;
     localStorage.setItem(SYNC_STORAGE_KEY, serialized);
 
@@ -189,14 +245,24 @@ class GameSyncManager {
     if (this.broadcastChannel) {
       this.broadcastChannel.postMessage({
         type: 'STATE_UPDATE',
-        payload: newState,
+        payload: cleanState,
         timestamp: Date.now()
       });
     }
 
     // 2. Envia via Firebase para a equipe remota (se ativo)
     if (this.isFirebaseActive && this.dbRef) {
-      this.dbRef.set(newState).catch((err) => {
+      // Cria payload seguro para o Firebase (se completedTasks for vazio, coloca sentinela para não apagar o nó)
+      const firebasePayload = {
+        completedTasks: Object.keys(cleanState.completedTasks).length === 0
+          ? { _empty: true }
+          : cleanState.completedTasks,
+        history: cleanState.history.length === 0 ? [] : cleanState.history,
+        lastCheer: cleanState.lastCheer,
+        updatedAt: Date.now()
+      };
+
+      this.dbRef.set(firebasePayload).catch((err) => {
         console.error('Erro ao sincronizar com Firebase:', err);
       });
     }
@@ -209,7 +275,7 @@ class GameSyncManager {
     const raw = localStorage.getItem(SYNC_STORAGE_KEY);
     if (raw) {
       try {
-        return JSON.parse(raw);
+        return this._sanitizeState(JSON.parse(raw));
       } catch (e) {
         return null;
       }
