@@ -18,7 +18,7 @@ const GAME_DATA = {
   green: {
     id: 'green',
     name: 'Projetos',
-    color: '#10b981',
+    color: '#529977',
     emoji: '🌿',
     tasks: [
       {
@@ -801,7 +801,7 @@ class JoguinApp {
         particleCount: 80,
         spread: 60,
         origin: { y: 0.65 },
-        colors: ['#10b981', '#df633c', '#4783aa', '#f3c159']
+        colors: ['#529977', '#df633c', '#4783aa', '#f3c159']
       });
     }
   }
@@ -821,14 +821,14 @@ class JoguinApp {
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#10b981', '#df633c', '#4783aa', '#f3c159']
+        colors: ['#529977', '#df633c', '#4783aa', '#f3c159']
       });
       confetti({
         particleCount: 5,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#10b981', '#df633c', '#4783aa', '#f3c159']
+        colors: ['#529977', '#df633c', '#4783aa', '#f3c159']
       });
 
       if (Date.now() < end) {

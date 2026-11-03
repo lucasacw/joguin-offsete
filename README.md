@@ -10,13 +10,13 @@ Cada time possui seu próprio **QG (Base)**, seu **Pino 3D estilizado**, sua **p
 
 | Cor | Frente | Metas |
 | :--- | :--- | :--- |
-| 🌿 **Verde** | **Projetos** | 1. Prospecção de tomotoy<br>2. Prospecção de ilustrações<br>3. Branding megara<br>4. Ruella<br>5. Portfolio de fotografia leticia |
-| 🔥 **Vermelho** | **Mídias** | 1. 500 seguidores<br>2. 33 posts<br>3. 198 stories<br>4. Aumentar engajamento para 30%<br>5. Estimular equipe a engajar |
-| 💎 **Azul** | **Zelo** | 1. Arrecadar pagamentos<br>2. Apresentação padrão<br>3. Alertas das próximas reuniões<br>4. Ata das reuniões<br>5. Reunião de encerramento com report |
-| 🛍️ **Amarelo** | **Loja** | 1. Apresentar plano de produtos<br>2. Agendar planejamento de campanha<br>3. Agendar início de campanha de venda<br>4. Fluxo logístico de venda<br>5. Fluxo de atendimento |
+| 🌿 **Verde Sálvia** (`#529977`) | **Projetos** | 1. Prospecção de tomotoy<br>2. Prospecção de ilustrações<br>3. Branding megara<br>4. Ruella<br>5. Portfolio de fotografia leticia |
+| 🔥 **Terracota** (`#df633c`) | **Mídias** | 1. 500 seguidores<br>2. 33 posts<br>3. 198 stories<br>4. Aumentar engajamento para 30%<br>5. Estimular equipe a engajar |
+| 💎 **Azul Ardósia** (`#4783aa`) | **Zelo** | 1. Arrecadar pagamentos<br>2. Apresentação padrão<br>3. Alertas das próximas reuniões<br>4. Ata das reuniões<br>5. Reunião de encerramento com report |
+| 🛍️ **Mostarda Solar** (`#f3c159`) | **Loja** | 1. Apresentar plano de produtos<br>2. Agendar planejamento de campanha<br>3. Agendar início de campanha de venda<br>4. Fluxo logístico de venda<br>5. Fluxo de atendimento |
 
 🎯 **Centro do Tabuleiro (Grande Chegada):**
-Conforme cada frente conclui suas 5 etapas, seu pino sobe para o Pódio Central em **Dezembro de 2026**. Quando todas as 20 metas coletivas forem batidas, uma grande celebração cinematográfica de vitória com fogos, confetes e fanfarra é acionada!
+Conforme cada frente conclui suas 5 etapas, seu pino sobe para o Pódio Central na **Missão Offsete 2026**. Quando todas as 20 metas coletivas forem batidas, uma grande celebração cinematográfica de vitória com fogos, confetes e fanfarra é acionada!
 
 ---
 
