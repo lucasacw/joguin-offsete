@@ -564,10 +564,18 @@ class JoguinApp {
         author: `Time ${team.name} ${team.emoji}`
       };
 
+      // Remove duplicatas prévias se existirem e insere no topo
+      this.state.history = this.state.history.filter(item => {
+        if (item.taskId) return item.taskId !== taskId;
+        return !(item.teamId === teamId && item.taskTitle === task.title);
+      });
+
       this.state.history.unshift({
+        taskId: taskId,
         teamId: team.id,
         teamName: team.name,
         taskTitle: task.title,
+        cheer: task.cheer,
         time: timeStr
       });
 
@@ -580,6 +588,26 @@ class JoguinApp {
       this.triggerConfetti();
       this.showCelebrationModal(team, task);
     } else {
+      // Tarefa desfeita: remove imediatamente do histórico de avanços
+      this.state.history = this.state.history.filter(item => {
+        if (item.taskId) return item.taskId !== taskId;
+        return !(item.teamId === teamId && item.taskTitle === task.title);
+      });
+
+      // Atualiza o painel de comemoração com o avanço mais recente remanescente
+      if (this.state.history.length > 0) {
+        const latest = this.state.history[0];
+        this.state.lastCheer = {
+          text: latest.cheer || `Avanço ativo na frente ${latest.teamName}!`,
+          author: `Time ${latest.teamName}`
+        };
+      } else {
+        this.state.lastCheer = {
+          text: "Bem-vindos ao tabuleiro da virada! O objetivo coletivo é levar todos os 4 pinos até o centro em Dezembro de 2026. Quem vai dar o primeiro passo?!",
+          author: "O Juiz do Jogo 🎲"
+        };
+      }
+
       this.sound.playPawnStep();
     }
 
