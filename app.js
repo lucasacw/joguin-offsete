@@ -411,13 +411,6 @@ class JoguinApp {
 
     this.victoryModal = document.getElementById('victory-modal');
     this.btnCloseVictory = document.getElementById('btn-close-victory');
-
-    this.syncModal = document.getElementById('sync-modal');
-    this.btnCloseSync = document.getElementById('btn-close-sync');
-    this.firebaseConfigInput = document.getElementById('firebase-config-input');
-    this.btnSaveFirebase = document.getElementById('btn-save-firebase');
-    this.btnClearFirebase = document.getElementById('btn-clear-firebase');
-    this.syncModalStatus = document.getElementById('sync-modal-status');
   }
 
   /**
@@ -475,25 +468,19 @@ class JoguinApp {
     // Rolar dado
     this.btnRollDice.addEventListener('click', () => this.rollDice());
 
-    // Botão de status de sincronização abre modal de configuração
-    this.btnSyncStatus.addEventListener('click', () => this.openSyncModal());
-    this.btnCloseSync.addEventListener('click', () => this.closeSyncModal());
-
-    // Salvar configuração do Firebase
-    this.btnSaveFirebase.addEventListener('click', () => this.saveFirebase());
-    this.btnClearFirebase.addEventListener('click', () => this.clearFirebase());
-
     // Fechar modais de celebração
     this.btnCloseModal.addEventListener('click', () => this.closeCelebrationModal());
     this.btnCloseVictory.addEventListener('click', () => this.closeVictoryModal());
 
     // Fechar modal ao clicar fora
-    [this.celebrationModal, this.victoryModal, this.syncModal].forEach((modal) => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.setAttribute('aria-hidden', 'true');
-        }
-      });
+    [this.celebrationModal, this.victoryModal].forEach((modal) => {
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.setAttribute('aria-hidden', 'true');
+          }
+        });
+      }
     });
 
     // Resetar jogo
@@ -841,66 +828,10 @@ class JoguinApp {
     this.updateUI();
   }
 
-  /**
-   * Modal e Conexão Firebase
-   */
-  openSyncModal() {
-    const status = window.GameSync.getStatus();
-    this.syncModalStatus.innerHTML = `
-      <span class="status-icon">${status.mode === 'firebase' ? '🟢' : '🟡'}</span>
-      <span>Status: <strong>${status.label}</strong></span>
-    `;
-
-    const saved = localStorage.getItem('joguin_firebase_config');
-    if (saved) {
-      try {
-        this.firebaseConfigInput.value = JSON.stringify(JSON.parse(saved), null, 2);
-      } catch (e) {
-        this.firebaseConfigInput.value = saved;
-      }
-    }
-
-    this.syncModal.removeAttribute('aria-hidden');
-  }
-
-  closeSyncModal() {
-    this.syncModal.setAttribute('aria-hidden', 'true');
-  }
-
-  saveFirebase() {
-    const raw = this.firebaseConfigInput.value.trim();
-    if (!raw) {
-      alert('Por favor, cole o JSON de configuração do seu projeto Firebase.');
-      return;
-    }
-
-    try {
-      const config = JSON.parse(raw);
-      const ok = window.GameSync.connectFirebase(config);
-      if (ok) {
-        alert('🎉 Conectado com sucesso ao Firebase! Agora o tabuleiro atualiza em tempo real para todo o time no GitHub Pages!');
-        this.closeSyncModal();
-        this.updateSyncBadge();
-      } else {
-        alert('Não foi possível conectar. Verifique os dados do Firebase.');
-      }
-    } catch (e) {
-      alert('O texto inserido não é um JSON válido. Verifique chaves e aspas.');
-    }
-  }
-
-  clearFirebase() {
-    window.GameSync.disconnectFirebase();
-    this.firebaseConfigInput.value = '';
-    alert('Desconectado do Firebase. Tabuleiro operando em modo local (Multi-Abas).');
-    this.closeSyncModal();
-    this.updateSyncBadge();
-  }
-
   updateSyncBadge() {
     const status = window.GameSync.getStatus();
     this.syncDot.className = `sync-dot ${status.dotClass}`;
-    this.syncLabel.textContent = status.mode === 'firebase' ? 'Sincronização: Online (Firebase)' : 'Sincronização: Local (Abas)';
+    this.syncLabel.textContent = status.label;
   }
 }
 

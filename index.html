@@ -40,12 +40,11 @@
     </div>
 
     <div class="header-right">
-      <!-- Status de Sincronização em Tempo Real -->
-      <button id="btn-sync-status" class="sync-status-pill" title="Clique para configurar o servidor em tempo real">
-        <span id="sync-dot" class="sync-dot local"></span>
-        <span id="sync-label">Sincronização: Local (Abas)</span>
-        <span class="settings-gear">⚙️</span>
-      </button>
+      <!-- Status de Sincronização em Tempo Real (Online como Padrão) -->
+      <div id="btn-sync-status" class="sync-status-pill" title="Sincronização em tempo real ativa na nuvem para toda a equipe">
+        <span id="sync-dot" class="sync-dot online"></span>
+        <span id="sync-label">Sincronização: Ao Vivo 🟢</span>
+      </div>
       
       <!-- Botão de Som -->
       <button id="btn-sound-toggle" class="icon-btn" title="Ligar/Desligar Efeitos Sonoros">
@@ -419,42 +418,6 @@
         Vocês conseguiram! A equipe inteira remou junto, superou os desafios e levou cada um dos pinos até a vitória. Dezembro de 2026 é nosso! Parabéns a todo o time! 🚀🎉
       </p>
       <button class="btn-modal-close btn-gold" id="btn-close-victory">Bater Palma para a Equipe! 👏</button>
-    </div>
-  </div>
-
-  <!-- MODAL: Configuração de Sincronização em Tempo Real (Firebase / Multi-usuário) -->
-  <div class="celebration-overlay" id="sync-modal" aria-hidden="true">
-    <div class="celebration-box sync-config-box">
-      <div class="sync-modal-header">
-        <h3>🌐 Conectividade em Tempo Real</h3>
-        <button class="btn-close-x" id="btn-close-sync">✕</button>
-      </div>
-      <p class="sync-desc">
-        Como o <strong>GitHub Pages</strong> é gratuito e estático, nós conectamos o jogo a um banco de dados em tempo real gratuito (como o <strong>Firebase Realtime Database</strong>). Assim, quando alguém marcar uma tarefa no computador dele, a tela de todo mundo mexe na mesma hora!
-      </p>
-      
-      <div class="sync-status-indicator" id="sync-modal-status">
-        <span class="status-icon">🟡</span>
-        <span>Modo atual: <strong>Sincronização Local (Multi-Abas via BroadcastChannel)</strong></span>
-      </div>
-
-      <div class="sync-options-tabs">
-        <label class="form-label">Cole suas credenciais do Firebase (grátis):</label>
-        <textarea id="firebase-config-input" rows="6" placeholder='{
-  "apiKey": "AIzaSy...",
-  "authDomain": "seu-app.firebaseapp.com",
-  "databaseURL": "https://seu-app-default-rtdb.firebaseio.com",
-  "projectId": "seu-app"
-}'></textarea>
-        <small class="helper-text">
-          💡 <strong>Dica rápida:</strong> O jogo já funciona 100% agora entre abas do mesmo navegador sem precisar preencher nada! Se quiser sincronizar com seu time pela internet no GitHub Pages, basta criar um projeto grátis no <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer">Firebase Console</a>, habilitar o Realtime Database e colar o JSON acima.
-        </small>
-      </div>
-
-      <div class="sync-modal-actions">
-        <button id="btn-save-firebase" class="btn-primary">Salvar e Conectar ao Vivo</button>
-        <button id="btn-clear-firebase" class="btn-secondary">Usar Modo Local</button>
-      </div>
     </div>
   </div>
 

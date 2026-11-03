@@ -287,17 +287,10 @@ class GameSyncManager {
    * Retorna informações sobre o status de conectividade
    */
   getStatus() {
-    if (this.isFirebaseActive) {
-      return {
-        mode: 'firebase',
-        label: 'Online: Firebase em Tempo Real',
-        dotClass: 'online'
-      };
-    }
     return {
-      mode: 'local',
-      label: 'Local: Multi-Abas Ativo',
-      dotClass: 'local'
+      mode: 'firebase',
+      label: this.isFirebaseActive ? 'Ao Vivo (Online)' : 'Conectando à Nuvem...',
+      dotClass: this.isFirebaseActive ? 'online' : 'offline'
     };
   }
 }
