@@ -412,6 +412,13 @@ class JoguinApp {
     this.victoryModal = document.getElementById('victory-modal');
     this.btnCloseVictory = document.getElementById('btn-close-victory');
 
+    // Modal de Chegada à Meta Final da Frente (5/5) & Presente Secreto
+    this.teamGoalModal = document.getElementById('team-goal-modal');
+    this.teamGoalEmoji = document.getElementById('team-goal-emoji');
+    this.teamGoalTeamName = document.getElementById('team-goal-team-name');
+    this.teamGoalBadge = document.getElementById('team-goal-badge');
+    this.btnCloseTeamGoal = document.getElementById('btn-close-team-goal');
+
     // Modal de Seleção de Tarefa ("Qual atividade foi realizada?")
     this.taskSelectModal = document.getElementById('task-select-modal');
     this.taskSelectBadge = document.getElementById('task-select-badge');
@@ -498,6 +505,9 @@ class JoguinApp {
     // Fechar modais de celebração
     this.btnCloseModal.addEventListener('click', () => this.closeCelebrationModal());
     this.btnCloseVictory.addEventListener('click', () => this.closeVictoryModal());
+    if (this.btnCloseTeamGoal) {
+      this.btnCloseTeamGoal.addEventListener('click', () => this.closeTeamGoalModal());
+    }
 
     // Fechar modal de pergunta de atividade
     if (this.btnCloseSelect) {
@@ -510,7 +520,7 @@ class JoguinApp {
     }
 
     // Fechar modal ao clicar fora
-    [this.celebrationModal, this.victoryModal, this.taskSelectModal, this.resetPasswordModal].forEach((modal) => {
+    [this.celebrationModal, this.victoryModal, this.teamGoalModal, this.taskSelectModal, this.resetPasswordModal].forEach((modal) => {
       if (modal) {
         modal.addEventListener('click', (e) => {
           if (e.target === modal) {
@@ -525,6 +535,7 @@ class JoguinApp {
       if (e.key === 'Escape') {
         this.closeCelebrationModal();
         this.closeVictoryModal();
+        this.closeTeamGoalModal();
         this.closeTaskSelectModal();
         this.closeResetPasswordModal();
       }
@@ -696,7 +707,14 @@ class JoguinApp {
       // Efeitos de Sucesso
       this.sound.playTaskComplete();
       this.triggerConfetti();
-      this.showCelebrationModal(team, task);
+
+      // Checa se este avanço completou a 5ª meta da frente (chegada ao pódio final)
+      const currentTeamDoneCount = team.tasks.filter(t => !!this.state.completedTasks[t.id]).length;
+      if (currentTeamDoneCount === 5) {
+        this.triggerTeamGoal(team);
+      } else {
+        this.showCelebrationModal(team, task);
+      }
     } else {
       // Tarefa desfeita: remove imediatamente do histórico de avanços
       this.state.history = this.state.history.filter(item => {
@@ -1044,6 +1062,31 @@ class JoguinApp {
   }
 
   /**
+   * Celebração de Chegada à Meta Final da Frente (5/5) & Presente Secreto
+   */
+  triggerTeamGoal(team) {
+    this.sound.playVictory();
+    this.triggerEpicConfetti();
+    if (this.teamGoalModal) {
+      if (this.teamGoalEmoji) this.teamGoalEmoji.textContent = team.emoji;
+      if (this.teamGoalTeamName) {
+        this.teamGoalTeamName.textContent = `Frente ${team.name}`;
+        this.teamGoalTeamName.style.color = team.color;
+      }
+      if (this.teamGoalBadge) {
+        this.teamGoalBadge.style.borderColor = team.color;
+      }
+      this.teamGoalModal.removeAttribute('aria-hidden');
+    }
+  }
+
+  closeTeamGoalModal() {
+    if (this.teamGoalModal) {
+      this.teamGoalModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  /**
    * Efeito de confete padrão
    */
   triggerConfetti() {
@@ -1094,6 +1137,7 @@ class JoguinApp {
   resetGame() {
     this.closeCelebrationModal();
     this.closeVictoryModal();
+    this.closeTeamGoalModal();
     this.closeLiveToast();
     this.closeTaskSelectModal();
     this.closeResetPasswordModal();
