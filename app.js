@@ -1053,7 +1053,8 @@ class JoguinApp {
    */
   triggerVictory() {
     this.sound.playVictory();
-    this.triggerEpicConfetti();
+    // Confetes por dois minutos (120 segundos)
+    this.triggerEpicConfetti(120 * 1000);
     this.victoryModal.removeAttribute('aria-hidden');
   }
 
@@ -1066,7 +1067,7 @@ class JoguinApp {
    */
   triggerTeamGoal(team) {
     this.sound.playVictory();
-    this.triggerEpicConfetti();
+    this.triggerEpicConfetti(6 * 1000);
     if (this.teamGoalModal) {
       if (this.teamGoalEmoji) this.teamGoalEmoji.textContent = team.emoji;
       if (this.teamGoalTeamName) {
@@ -1102,23 +1103,30 @@ class JoguinApp {
 
   /**
    * Efeito épico de confetes e fogos contínuos na vitória
+   * @param {number} customDuration - Duração em milissegundos
    */
-  triggerEpicConfetti() {
+  triggerEpicConfetti(customDuration = 4500) {
     if (typeof confetti !== 'function') return;
 
-    const duration = 4.5 * 1000;
+    if (this.confettiAnimationId) {
+      cancelAnimationFrame(this.confettiAnimationId);
+      this.confettiAnimationId = null;
+    }
+
+    const duration = customDuration;
     const end = Date.now() + duration;
+    const self = this;
 
     (function frame() {
       confetti({
-        particleCount: 5,
+        particleCount: 4,
         angle: 60,
         spread: 55,
         origin: { x: 0 },
         colors: ['#529977', '#df633c', '#4783aa', '#f3c159']
       });
       confetti({
-        particleCount: 5,
+        particleCount: 4,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
@@ -1126,7 +1134,9 @@ class JoguinApp {
       });
 
       if (Date.now() < end) {
-        requestAnimationFrame(frame);
+        self.confettiAnimationId = requestAnimationFrame(frame);
+      } else {
+        self.confettiAnimationId = null;
       }
     })();
   }
@@ -1135,6 +1145,10 @@ class JoguinApp {
    * Reiniciar jogo
    */
   resetGame() {
+    if (this.confettiAnimationId) {
+      cancelAnimationFrame(this.confettiAnimationId);
+      this.confettiAnimationId = null;
+    }
     this.closeCelebrationModal();
     this.closeVictoryModal();
     this.closeTeamGoalModal();
