@@ -78,7 +78,10 @@
                 <span class="team-progress-count" id="count-green">0/5 concluídas</span>
               </div>
             </div>
-            <span class="team-arrow">▼</span>
+            <div class="team-header-actions">
+              <button class="btn-advance-team" data-team="green" title="Avançar pino da frente Projetos">+ Avançar Pino ♟️</button>
+              <span class="team-arrow">▼</span>
+            </div>
           </div>
           <div class="team-tasks-list" id="tasks-green">
             <!-- Injetado dinamicamente via JS -->
@@ -95,7 +98,10 @@
                 <span class="team-progress-count" id="count-red">0/5 concluídas</span>
               </div>
             </div>
-            <span class="team-arrow">▼</span>
+            <div class="team-header-actions">
+              <button class="btn-advance-team" data-team="red" title="Avançar pino da frente Mídias">+ Avançar Pino ♟️</button>
+              <span class="team-arrow">▼</span>
+            </div>
           </div>
           <div class="team-tasks-list" id="tasks-red">
             <!-- Injetado dinamicamente via JS -->
@@ -112,7 +118,10 @@
                 <span class="team-progress-count" id="count-blue">0/5 concluídas</span>
               </div>
             </div>
-            <span class="team-arrow">▼</span>
+            <div class="team-header-actions">
+              <button class="btn-advance-team" data-team="blue" title="Avançar pino da frente Zelo">+ Avançar Pino ♟️</button>
+              <span class="team-arrow">▼</span>
+            </div>
           </div>
           <div class="team-tasks-list" id="tasks-blue">
             <!-- Injetado dinamicamente via JS -->
@@ -129,7 +138,10 @@
                 <span class="team-progress-count" id="count-yellow">0/5 concluídas</span>
               </div>
             </div>
-            <span class="team-arrow">▼</span>
+            <div class="team-header-actions">
+              <button class="btn-advance-team" data-team="yellow" title="Avançar pino da frente Loja">+ Avançar Pino ♟️</button>
+              <span class="team-arrow">▼</span>
+            </div>
           </div>
           <div class="team-tasks-list" id="tasks-yellow">
             <!-- Injetado dinamicamente via JS -->
@@ -388,6 +400,28 @@
       </div>
     </aside>
   </main>
+
+  <!-- MODAL: Pergunta "Qual atividade foi realizada?" para Avançar o Pino -->
+  <div class="celebration-overlay" id="task-select-modal" aria-hidden="true">
+    <div class="celebration-box task-select-box">
+      <div class="task-select-header">
+        <div class="task-select-badge" id="task-select-badge">
+          <span class="task-select-emoji" id="task-select-emoji">🌿</span>
+          <span class="task-select-team-name" id="task-select-team">Frente Projetos</span>
+        </div>
+        <button class="btn-close-select" id="btn-close-select" title="Fechar janela">✕</button>
+      </div>
+
+      <div class="task-select-prompt">
+        <h2 id="task-select-title">Qual atividade foi realizada?</h2>
+        <p id="task-select-subtitle">Dê o check na meta concluída para o pino avançar no tabuleiro:</p>
+      </div>
+
+      <div class="task-select-list" id="task-select-list">
+        <!-- Injetado dinamicamente com as opções do grupo -->
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: Notificação de Celebração de Tarefa Concluída -->
   <div class="celebration-overlay" id="celebration-modal" aria-hidden="true">

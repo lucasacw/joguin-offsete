@@ -412,6 +412,16 @@ class JoguinApp {
     this.victoryModal = document.getElementById('victory-modal');
     this.btnCloseVictory = document.getElementById('btn-close-victory');
 
+    // Modal de Seleção de Tarefa ("Qual atividade foi realizada?")
+    this.taskSelectModal = document.getElementById('task-select-modal');
+    this.taskSelectBadge = document.getElementById('task-select-badge');
+    this.taskSelectEmoji = document.getElementById('task-select-emoji');
+    this.taskSelectTeam = document.getElementById('task-select-team');
+    this.taskSelectTitle = document.getElementById('task-select-title');
+    this.taskSelectSubtitle = document.getElementById('task-select-subtitle');
+    this.taskSelectList = document.getElementById('task-select-list');
+    this.btnCloseSelect = document.getElementById('btn-close-select');
+
     // Toast de Notificação Ao Vivo
     this.liveToast = document.getElementById('live-toast');
     this.toastIcon = document.getElementById('toast-icon');
@@ -481,13 +491,18 @@ class JoguinApp {
     this.btnCloseModal.addEventListener('click', () => this.closeCelebrationModal());
     this.btnCloseVictory.addEventListener('click', () => this.closeVictoryModal());
 
+    // Fechar modal de pergunta de atividade
+    if (this.btnCloseSelect) {
+      this.btnCloseSelect.addEventListener('click', () => this.closeTaskSelectModal());
+    }
+
     // Fechar toast ao clicar no botão
     if (this.btnToastClose) {
       this.btnToastClose.addEventListener('click', () => this.closeLiveToast());
     }
 
     // Fechar modal ao clicar fora
-    [this.celebrationModal, this.victoryModal].forEach((modal) => {
+    [this.celebrationModal, this.victoryModal, this.taskSelectModal].forEach((modal) => {
       if (modal) {
         modal.addEventListener('click', (e) => {
           if (e.target === modal) {
@@ -505,24 +520,49 @@ class JoguinApp {
       }
     });
 
-    // Acordeom dos cards de times
+    // Acordeom dos cards de times (não recolhe se clicou no botão de avançar)
     document.querySelectorAll('.team-card-header').forEach((header) => {
-      header.addEventListener('click', () => {
+      header.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-advance-team')) return;
         const card = header.closest('.team-card');
         card.classList.toggle('collapsed');
       });
     });
 
-    // Clique direto nas casas do tabuleiro para ver/concluir a tarefa correspondente
+    // Botões "+ Avançar Pino" de cada time na barra lateral
+    document.querySelectorAll('.btn-advance-team').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const teamId = btn.dataset.team;
+        this.openTaskSelectModal(teamId);
+      });
+    });
+
+    // Clique direto nos pinos do tabuleiro para abrir a pergunta de atividade
+    document.querySelectorAll('.pawn').forEach((pawn) => {
+      pawn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const teamId = pawn.id.replace('pawn-', '');
+        this.openTaskSelectModal(teamId);
+      });
+    });
+
+    // Clique nas bases dos times no tabuleiro para abrir a pergunta
+    ['green', 'red', 'blue', 'yellow'].forEach((teamId) => {
+      const base = document.querySelector(`.base-${teamId}`);
+      if (base) {
+        base.addEventListener('click', (e) => {
+          if (e.target.closest('.pawn')) return;
+          this.openTaskSelectModal(teamId);
+        });
+      }
+    });
+
+    // Clique nas casas do tabuleiro para abrir a pergunta
     document.querySelectorAll('.tile').forEach((tile) => {
       tile.addEventListener('click', () => {
         const teamId = tile.dataset.team;
-        const stepNum = parseInt(tile.dataset.step, 10);
-        const team = GAME_DATA[teamId];
-        if (team && team.tasks[stepNum - 1]) {
-          const task = team.tasks[stepNum - 1];
-          this.toggleTask(teamId, task.id);
-        }
+        this.openTaskSelectModal(teamId);
       });
     });
   }
@@ -822,6 +862,68 @@ class JoguinApp {
   }
 
   /**
+   * Abre o modal que pergunta qual atividade foi realizada pelo time
+   */
+  openTaskSelectModal(teamId) {
+    const team = GAME_DATA[teamId];
+    if (!team || !this.taskSelectModal) return;
+
+    this.currentSelectTeamId = teamId;
+    this.taskSelectEmoji.textContent = team.emoji;
+    this.taskSelectTeam.textContent = `Frente ${team.name}`;
+    this.taskSelectTeam.style.color = team.color;
+    this.taskSelectBadge.style.borderColor = team.color;
+
+    // Renderiza a lista de tarefas daquele grupo
+    this.taskSelectList.innerHTML = '';
+    let pendingCount = 0;
+
+    team.tasks.forEach((task, idx) => {
+      const isDone = !!(this.state.completedTasks && this.state.completedTasks[task.id]);
+      if (!isDone) pendingCount++;
+
+      const card = document.createElement('div');
+      card.className = `select-task-card ${isDone ? 'is-completed' : ''}`;
+      card.dataset.taskId = task.id;
+
+      card.innerHTML = `
+        <div class="select-task-check-circle" style="${isDone ? `background: ${team.color}; border-color: ${team.color};` : ''}"></div>
+        <div class="select-task-info">
+          <span class="select-task-name">${task.title}</span>
+          <span class="select-task-step">Casa ${idx + 1} de 5</span>
+        </div>
+        <span class="select-task-action-badge">${isDone ? '✓ Concluída (Clique para desfazer)' : 'Dar Check ✓'}</span>
+      `;
+
+      card.addEventListener('click', () => {
+        // Dá o check e avança
+        this.closeTaskSelectModal();
+        this.toggleTask(teamId, task.id);
+      });
+
+      this.taskSelectList.appendChild(card);
+    });
+
+    if (pendingCount === 0) {
+      const emptyNotice = document.createElement('div');
+      emptyNotice.className = 'select-tasks-empty';
+      emptyNotice.innerHTML = `
+        🎉 <strong>Todas as 5 metas da frente ${team.name} já foram concluídas!</strong><br>
+        O pino deste time já está brilhando no centro da Missão Offsete 2026!
+      `;
+      this.taskSelectList.appendChild(emptyNotice);
+    }
+
+    this.taskSelectModal.removeAttribute('aria-hidden');
+  }
+
+  closeTaskSelectModal() {
+    if (this.taskSelectModal) {
+      this.taskSelectModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  /**
    * Exibe toast flutuante em tempo real quando outra pessoa da equipe avança
    */
   showLiveToast(team, task) {
@@ -911,6 +1013,7 @@ class JoguinApp {
     this.closeCelebrationModal();
     this.closeVictoryModal();
     this.closeLiveToast();
+    this.closeTaskSelectModal();
 
     this.state = {
       completedTasks: {},
