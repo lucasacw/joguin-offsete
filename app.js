@@ -422,6 +422,14 @@ class JoguinApp {
     this.taskSelectList = document.getElementById('task-select-list');
     this.btnCloseSelect = document.getElementById('btn-close-select');
 
+    // Modal de Senha para Reinício
+    this.resetPasswordModal = document.getElementById('reset-password-modal');
+    this.resetPasswordForm = document.getElementById('reset-password-form');
+    this.resetPasswordInput = document.getElementById('reset-password-input');
+    this.resetErrorMsg = document.getElementById('reset-error-msg');
+    this.btnCancelReset = document.getElementById('btn-cancel-reset');
+    this.btnConfirmReset = document.getElementById('btn-confirm-reset');
+
     // Toast de Notificação Ao Vivo
     this.liveToast = document.getElementById('live-toast');
     this.toastIcon = document.getElementById('toast-icon');
@@ -456,7 +464,7 @@ class JoguinApp {
         item.innerHTML = `
           <input type="checkbox" class="task-checkbox" ${isChecked ? 'checked' : ''} aria-label="${task.title}">
           <span class="task-label">${task.title}</span>
-          <span class="task-step-badge">Casa ${idx + 1}</span>
+          <span class="task-step-badge">${isChecked ? '✓ Concluída' : 'Meta pendente'}</span>
         `;
 
         // Clique no item inteiro alterna a tarefa
@@ -502,7 +510,7 @@ class JoguinApp {
     }
 
     // Fechar modal ao clicar fora
-    [this.celebrationModal, this.victoryModal, this.taskSelectModal].forEach((modal) => {
+    [this.celebrationModal, this.victoryModal, this.taskSelectModal, this.resetPasswordModal].forEach((modal) => {
       if (modal) {
         modal.addEventListener('click', (e) => {
           if (e.target === modal) {
@@ -512,13 +520,33 @@ class JoguinApp {
       }
     });
 
-    // Resetar jogo
-    this.btnResetGame.addEventListener('click', () => {
-      const confirmReset = confirm('Tem certeza que deseja reiniciar o tabuleiro? Todas as 20 metas voltarão para o início!');
-      if (confirmReset) {
-        this.resetGame();
+    // Fechar modais ao pressionar tecla Escape
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeCelebrationModal();
+        this.closeVictoryModal();
+        this.closeTaskSelectModal();
+        this.closeResetPasswordModal();
       }
     });
+
+    // Resetar jogo com senha "3patinhos"
+    this.btnResetGame.addEventListener('click', () => {
+      this.openResetPasswordModal();
+    });
+
+    if (this.btnCancelReset) {
+      this.btnCancelReset.addEventListener('click', () => {
+        this.closeResetPasswordModal();
+      });
+    }
+
+    if (this.resetPasswordForm) {
+      this.resetPasswordForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.submitResetPassword();
+      });
+    }
 
     // Acordeom dos cards de times (não recolhe se clicou no botão de avançar)
     document.querySelectorAll('.team-card-header').forEach((header) => {
@@ -738,34 +766,88 @@ class JoguinApp {
 
     // Atualiza cada time
     Object.values(GAME_DATA).forEach((team) => {
-      let teamDoneCount = 0;
+      // 1. Pega os IDs de tarefas concluídas deste time
+      const teamCompletedTaskIds = Object.keys(this.state.completedTasks).filter(
+        id => this.state.completedTasks[id] && team.tasks.some(t => t.id === id)
+      );
 
-      team.tasks.forEach((task, idx) => {
+      // 2. Ordena de acordo com o histórico cronológico de avanços (da mais antiga para a mais recente)
+      const orderedCompletedTasks = [];
+      const teamHistoryAsc = [...this.state.history]
+        .reverse()
+        .filter(item => item.teamId === team.id && teamCompletedTaskIds.includes(item.taskId));
+
+      teamHistoryAsc.forEach(h => {
+        if (!orderedCompletedTasks.some(t => t.id === h.taskId)) {
+          const taskObj = team.tasks.find(t => t.id === h.taskId);
+          if (taskObj) orderedCompletedTasks.push(taskObj);
+        }
+      });
+
+      // Tarefas marcadas que eventualmente não estejam no histórico
+      teamCompletedTaskIds.forEach(id => {
+        if (!orderedCompletedTasks.some(t => t.id === id)) {
+          const taskObj = team.tasks.find(t => t.id === id);
+          if (taskObj) orderedCompletedTasks.push(taskObj);
+        }
+      });
+
+      const teamDoneCount = orderedCompletedTasks.length;
+
+      // 3. Atualiza checkboxes e badges no painel lateral
+      team.tasks.forEach((task) => {
         const isDone = !!this.state.completedTasks[task.id];
-        if (isDone) teamDoneCount++;
-
-        // Atualiza checkbox no painel lateral
         const item = document.getElementById(`item-${task.id}`);
         if (item) {
           const cb = item.querySelector('input[type="checkbox"]');
           if (cb) cb.checked = isDone;
           item.classList.toggle('completed', isDone);
-        }
 
-        // Atualiza a casa no tabuleiro (active)
-        const tile = document.getElementById(`tile-${team.id}-${idx + 1}`);
-        if (tile) {
-          tile.classList.toggle('active', isDone);
+          const badge = item.querySelector('.task-step-badge');
+          if (badge) {
+            const stepIdx = orderedCompletedTasks.findIndex(t => t.id === task.id);
+            badge.textContent = isDone ? `✓ Concluída (Casa ${stepIdx + 1})` : 'Meta pendente';
+          }
         }
       });
 
-      // Atualiza texto do time "X/5 concluídas"
+      // 4. Atualiza as 5 casas do tabuleiro para este time em sequência
+      for (let step = 1; step <= 5; step++) {
+        const tile = document.getElementById(`tile-${team.id}-${step}`);
+        if (!tile) continue;
+
+        const taskForThisStep = orderedCompletedTasks[step - 1];
+        const tooltip = tile.querySelector('.tile-tooltip');
+        const taskNameEl = tile.querySelector('.tile-task-name');
+
+        if (taskForThisStep) {
+          tile.classList.add('active');
+          if (taskNameEl) {
+            taskNameEl.textContent = taskForThisStep.title;
+          }
+          if (tooltip) {
+            tooltip.textContent = `Casa ${step}: ${taskForThisStep.title} ✓`;
+          }
+          tile.setAttribute('title', `Casa ${step}: ${taskForThisStep.title}`);
+        } else {
+          tile.classList.remove('active');
+          if (taskNameEl) {
+            taskNameEl.textContent = '';
+          }
+          if (tooltip) {
+            tooltip.textContent = step === 5 ? `Casa 5 (Chegada à Meta)` : `Casa ${step}`;
+          }
+          tile.setAttribute('title', `Casa ${step} - Frente ${team.name}`);
+        }
+      }
+
+      // 5. Atualiza texto do time "X/5 concluídas"
       const countEl = document.getElementById(`count-${team.id}`);
       if (countEl) {
         countEl.textContent = `${teamDoneCount}/5 concluídas`;
       }
 
-      // Move o pino correspondente no tabuleiro
+      // 6. Move o pino correspondente no tabuleiro
       this.positionPawn(team.id, teamDoneCount);
 
       totalDone += teamDoneCount;
@@ -890,7 +972,7 @@ class JoguinApp {
         <div class="select-task-check-circle" style="${isDone ? `background: ${team.color}; border-color: ${team.color};` : ''}"></div>
         <div class="select-task-info">
           <span class="select-task-name">${task.title}</span>
-          <span class="select-task-step">Casa ${idx + 1} de 5</span>
+          <span class="select-task-step">${isDone ? '✓ Meta Concluída' : 'Meta da frente'}</span>
         </div>
         <span class="select-task-action-badge">${isDone ? '✓ Concluída (Clique para desfazer)' : 'Dar Check ✓'}</span>
       `;
@@ -1014,6 +1096,7 @@ class JoguinApp {
     this.closeVictoryModal();
     this.closeLiveToast();
     this.closeTaskSelectModal();
+    this.closeResetPasswordModal();
 
     this.state = {
       completedTasks: {},
@@ -1025,6 +1108,50 @@ class JoguinApp {
     };
     window.GameSync.publishState(this.state);
     this.updateUI();
+  }
+
+  /**
+   * Gerenciamento do Modal de Senha para Reinício
+   */
+  openResetPasswordModal() {
+    if (!this.resetPasswordModal) return;
+    if (this.resetPasswordInput) {
+      this.resetPasswordInput.value = '';
+      this.resetPasswordInput.classList.remove('shake');
+    }
+    if (this.resetErrorMsg) {
+      this.resetErrorMsg.textContent = '';
+      this.resetErrorMsg.style.display = 'none';
+    }
+    this.resetPasswordModal.removeAttribute('aria-hidden');
+    setTimeout(() => {
+      if (this.resetPasswordInput) this.resetPasswordInput.focus();
+    }, 100);
+  }
+
+  closeResetPasswordModal() {
+    if (this.resetPasswordModal) {
+      this.resetPasswordModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  submitResetPassword() {
+    const entered = (this.resetPasswordInput ? this.resetPasswordInput.value : '').trim();
+    if (entered === '3patinhos') {
+      this.closeResetPasswordModal();
+      this.resetGame();
+    } else {
+      if (this.resetPasswordInput) {
+        this.resetPasswordInput.classList.remove('shake');
+        void this.resetPasswordInput.offsetWidth;
+        this.resetPasswordInput.classList.add('shake');
+        this.resetPasswordInput.focus();
+      }
+      if (this.resetErrorMsg) {
+        this.resetErrorMsg.textContent = '❌ Senha incorreta! Digite a senha correta ("3patinhos") para autorizar o reinício.';
+        this.resetErrorMsg.style.display = 'block';
+      }
+    }
   }
 
   updateSyncBadge() {
