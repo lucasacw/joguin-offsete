@@ -708,9 +708,15 @@ class JoguinApp {
       this.sound.playTaskComplete();
       this.triggerConfetti();
 
-      // Checa se este avanço completou a 5ª meta da frente (chegada ao pódio final)
+      // Checa se a 20ª meta geral foi batida (Vitória Coletiva) ou se a frente chegou ao pódio (5/5)
+      const allTasksDone = Object.values(this.state.completedTasks).filter(Boolean).length === 20;
       const currentTeamDoneCount = team.tasks.filter(t => !!this.state.completedTasks[t.id]).length;
-      if (currentTeamDoneCount === 5) {
+
+      if (allTasksDone) {
+        // Se todas as 20 foram concluídas, a Grande Vitória Coletiva já será acionada no updateUI()
+        this.closeCelebrationModal();
+        this.closeTeamGoalModal();
+      } else if (currentTeamDoneCount === 5) {
         this.triggerTeamGoal(team);
       } else {
         this.showCelebrationModal(team, task);
